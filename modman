@@ -1,0 +1,4 @@
+src/code                                                    app/code/community/Loewenstark/Gtag
+src/Loewenstark_Gtag.xml                                    app/etc/modules/Loewenstark_Gtag.xml
+src/design/frontend/base/default/template/gtag              app/design/frontend/base/default/template/gtag
+src/design/frontend/base/default/layout/gtag.xml   app/design/frontend/base/default/layout/gtag.xml

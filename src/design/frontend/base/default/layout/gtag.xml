@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <default>
+        <remove name="google_analytics" />
+        <reference name="head" before="-">
+            <block type="gtag/ga" name="gtag" as="gtag" template="gtag/ga.phtml" />
+        </reference>
+    </default>
+</layout>
