@@ -105,6 +105,7 @@ extends Mage_GoogleAnalytics_Block_Ga
     {
         if (!Mage::registry('aw_code_already_used'))
         {
+            Mage::register('aw_code_already_used', true);
             return $this->getAwAccount();
         }
         return false;
