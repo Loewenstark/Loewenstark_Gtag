@@ -11,6 +11,11 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', '<?php echo $_accountId ?>', <?php echo $this->getGtagOptions() ?>);
+    
+  <?php if($this->getAwAccountOnce()): ?>
+	  gtag('config', '<?php echo $this->getAwAccount() ?>');
+  <?php endif; ?>
+
 <?php echo $this->getOrdersTrackingCode(); ?>
 </script>
 <?php endif; ?>
