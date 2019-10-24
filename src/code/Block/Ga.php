@@ -3,64 +3,93 @@
 class Loewenstark_Gtag_Block_Ga
 extends Mage_GoogleAnalytics_Block_Ga
 {
+    
+    protected $_eCommerceData = null;
+    protected $_ConversionData = null;
+
     /**
      * Google Order Tracking
+     * Old Result just keep to avoid some issues!
+     * This Method will be collect data for self::getEcommerceTracking
+     *      and self::getConversionTracking
      * 
      * @return string
      */
     public function getOrdersTrackingCode()
     {
-        $orderIds = $this->getOrderIds();
-        if (empty($orderIds) || !is_array($orderIds)) {
-            return;
-        }
-        $collection = Mage::getResourceModel('sales/order_collection')
-            ->addFieldToFilter('entity_id', array('in' => $orderIds));
-        $result = array();
-        // added Adwords Data
-        if ($this->getAwAccount() && $this->getAwAccountOnce())
+        if (is_null($this->_eCommerceData))
         {
-            $result[] = '  gtag(\'config\', \''.$this->getAwAccount().'\');';
-        }
-        foreach ($collection as $order)
-        {
-            /* @var $order Mage_Sales_Model_Order */
-            $data = array(
-                'transaction_id' => $order->getIncrementId(),
-                'affiliation'    => Mage::app()->getStore()->getFrontendName(),
-                'value'          => round((float)$order->getBaseGrandTotal(), 2),
-                'currency'       => $order->getBaseCurrencyCode(),
-                'tax'            => round((float)$order->getBaseTaxAmount(), 2),
-                'shipping'       => round((float)$order->getBaseShippingAmount(), 2),
-                'items'          => array()
-            );
-            $i = 0;
-            foreach ($order->getAllVisibleItems() as $item)
-            {
-                /* @var $item Mage_Sales_Model_Order_Item */
-                $i++;
-                $data['items'][] = array(
-                    'id'            => $item->getSku(),
-                    'name'          => $item->getName(),
-                    // 'brand'         => 'BRAND',
-                    'category'      => null,
-                    'list_position' => $i,
-                    'quantity'      => (float) $item->getQtyOrdered(),
-                    'price'         => (float)round((float)$item->getBasePrice(), 2)
-                );
+            $orderIds = $this->getOrderIds();
+            if (empty($orderIds) || !is_array($orderIds)) {
+                return;
             }
-            $result[] = '  gtag(\'event\', \'purchase\', '.$this->jsonEncode($data, true).');';
-            if ($this->getAwAccount() && $this->getAwLabel())
+            $collection = Mage::getResourceModel('sales/order_collection')
+                ->addFieldToFilter('entity_id', array('in' => $orderIds));
+            $this->_eCommerceData = array();
+            $this->_ConversionData = array();
+            foreach ($collection as $order)
             {
-                $awData = array(
-                    'send_to'    => $this->getAwAccount().'/'.$this->getAwLabel(),
-                    'value'      => round((float)$order->getBaseGrandTotal(), 2),
-                    'currency'   => $order->getBaseCurrencyCode()
+                /* @var $order Mage_Sales_Model_Order */
+                $data = array(
+                    'transaction_id' => $order->getIncrementId(),
+                    'affiliation'    => Mage::app()->getStore()->getFrontendName(),
+                    'value'          => round((float)$order->getBaseGrandTotal(), 2),
+                    'currency'       => $order->getBaseCurrencyCode(),
+                    'tax'            => round((float)$order->getBaseTaxAmount(), 2),
+                    'shipping'       => round((float)$order->getBaseShippingAmount(), 2),
+                    'items'          => array()
                 );
-                $result[] = '  gtag(\'event\', \'conversion\', '.$this->jsonEncode($awData, true).');'; 
+                $i = 0;
+                foreach ($order->getAllVisibleItems() as $item)
+                {
+                    /* @var $item Mage_Sales_Model_Order_Item */
+                    $i++;
+                    $data['items'][] = array(
+                        'id'            => $item->getSku(),
+                        'name'          => $item->getName(),
+                        // 'brand'         => 'BRAND',
+                        'category'      => null,
+                        'list_position' => $i,
+                        'quantity'      => (float) $item->getQtyOrdered(),
+                        'price'         => (float)round((float)$item->getBasePrice(), 2)
+                    );
+                }
+                $this->_eCommerceData[] = '  gtag(\'event\', \'purchase\', '.$this->jsonEncode($data, true).');';
+                if ($this->getAwAccount() && $this->getAwLabel())
+                {
+                    $awData = array(
+                        'send_to'    => $this->getAwAccount().'/'.$this->getAwLabel(),
+                        'value'      => round((float)$order->getBaseGrandTotal(), 2),
+                        'currency'   => $order->getBaseCurrencyCode()
+                    );
+                    $this->_ConversionData[] = '  gtag(\'event\', \'conversion\', '.$this->jsonEncode($awData, true).');'; 
+                }
             }
         }
+        $result = array_merge($this->_eCommerceData, $this->_ConversionData);
         return implode("\n", $result);
+    }
+
+    /**
+     * get Elements for Google Adwords Conversion Tracking
+     * 
+     * @return string
+     */
+    public function getConversionTracking()
+    {
+        $this->getOrdersTrackingCode();
+        return implode("\n", $this->_ConversionData);
+    }
+
+    /**
+     * get Elements for Google Analytics eCommerce Tracking
+     * 
+     * @return string
+     */
+    public function getEcommerceTracking()
+    {
+        $this->getOrdersTrackingCode();
+        return implode("\n", $this->_eCommerceData);
     }
 
     /**
@@ -135,14 +164,6 @@ extends Mage_GoogleAnalytics_Block_Ga
             return false;
         }
         return Mage::getStoreConfig('google/adwords/label');
-    }
-
-    /**
-     * 
-     * @return boolean
-     */
-    protected function _isAvailable() {
-        return parent::_isAvailable();
     }
 
     /**
