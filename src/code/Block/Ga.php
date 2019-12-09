@@ -78,7 +78,11 @@ extends Mage_GoogleAnalytics_Block_Ga
     public function getConversionTracking()
     {
         $this->getOrdersTrackingCode();
-        return implode("\n", $this->_ConversionData);
+        if (is_array($this->_ConversionData))
+        {
+            return implode("\n", $this->_ConversionData);
+        }
+        return '';
     }
 
     /**
@@ -89,7 +93,11 @@ extends Mage_GoogleAnalytics_Block_Ga
     public function getEcommerceTracking()
     {
         $this->getOrdersTrackingCode();
-        return implode("\n", $this->_eCommerceData);
+        if (is_array($this->_eCommerceData))
+        {
+            return implode("\n", $this->_eCommerceData);
+        }
+        return '';
     }
 
     /**
