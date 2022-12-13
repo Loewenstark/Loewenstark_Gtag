@@ -1,8 +1,7 @@
 <?php
     /* @var $this Loewenstark_Gtag_Block_Ga */
-    $_helper = $this->helper('gtag');
-    /* @var $_helper Loewenstark_Gtag_Helper_Data */
-    $_accountId = $_helper->getAccountId();
+    $_accountId = $this->getAccountId();
+    $_ga4accountId = $this->getGa4AccountId();
 ?>
 <?php if($_accountId): ?>
 <script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo $_accountId ?>"></script>
@@ -10,7 +9,14 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', '<?php echo $_accountId ?>', <?php echo $this->getGtagOptions() ?>);
+  <?php if($this->getAccountIdIsUa()): ?>
+    gtag('config', '<?php echo $_accountId ?>', <?php echo $this->getGtagOptions() ?>);
+  <?php else: ?>
+    gtag('config', '<?php echo $_accountId ?>');
+  <?php endif; ?>
+  <?php if($_ga4accountId): ?>
+      gtag('config', '<?php echo $_ga4accountId ?>');
+  <?php endif; ?>
   <?php if($this->getAwAccountOnce()): ?>
     gtag('config', '<?php echo $this->getAwAccount() ?>');
   <?php endif; ?>

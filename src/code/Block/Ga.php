@@ -71,6 +71,41 @@ extends Mage_GoogleAnalytics_Block_Ga
     }
 
     /**
+     * 
+     * @return string
+     */
+    public function getAccountId()
+    {
+        return Mage::getStoreConfig('google/analytics/account');
+    }
+    
+    /**
+     * 
+     * @return boolean
+     */
+    public function getAccountIdIsUa() {
+        if (substr($this->getAccountId(), 0, 3) === 'UA-')
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 
+     * @return string
+     */
+    public function getGa4AccountId()
+    {
+        $ga4 = Mage::getStoreConfig('google/analytics/ga4');
+        if ($ga4 == $this->getAccountId())
+        {
+            return null;
+        }
+        return $ga4;
+    }
+    
+    /**
      * get Elements for Google Adwords Conversion Tracking
      * 
      * @return string
@@ -123,11 +158,11 @@ extends Mage_GoogleAnalytics_Block_Ga
     public function isAnonymizationEnabled()
     {
         // check on default and MageSetup also!
-        if (Mage::getStoreConfig('google/analytics/anonymization'))
+        if (Mage::getStoreConfigFlag('google/analytics/anonymization'))
         {
             return true;
         }
-        if (Mage::getStoreConfig('google/analytics/ip_anonymization'))
+        if (Mage::getStoreConfigFlag('google/analytics/ip_anonymization'))
         {
             return true;
         }
